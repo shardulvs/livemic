@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Audio Effects</title>
+    <script src="https://unpkg.com/tone"></script>
+</head>
+<body>
+    <button id="start">Start</button>
+    <button id="stop">Stop</button>
+    <div>
+        <label><input type="checkbox" id="pitchshift-enable"> Enable Pitch Shift</label>
+        <label>Pitch Shift (semitones): <input type="range" id="pitchshift-amount" min="-12" max="12" step="1" value="0"></label>
+    </div>
+    <div>
+        <label><input type="checkbox" id="reverb-enable"> Enable Reverb</label>
+        <label>Wet/Dry: <input type="range" id="reverb-wet" min="0" max="1" step="0.01" value="0.5"></label>
+    </div>
+    <div>
+        <label><input type="checkbox" id="chorus-enable"> Enable Chorus</label>
+        <label>Wet/Dry: <input type="range" id="chorus-wet" min="0" max="1" step="0.01" value="0.5"></label>
+        <label>Frequency: <input type="range" id="chorus-frequency" min="0" max="10" step="0.1" value="1.5"></label>
+        <label>Depth: <input type="range" id="chorus-depth" min="0" max="1" step="0.01" value="0.7"></label>
+    </div>
+    <div>
+        <label><input type="checkbox" id="distortion-enable"> Enable Distortion</label>
+        <label>Distortion: <input type="range" id="distortion-amount" min="0" max="1" step="0.01" value="0.5"></label>
+        <label>Wet/Dry: <input type="range" id="distortion-wet" min="0" max="1" step="0.01" value="0.5"></label>
+    </div>
+    <div>
+        <label>Delay Time (seconds): <input type="number" id="delay-time" min="0" max="5" step="0.1" value="0"></label>
+    </div>
+
+    <script>
+        const mic = new Tone.UserMedia();
+        const pitchShift = new Tone.PitchShift({ pitch: 0 });
+        const reverb = new Tone.Reverb({ wet: 0.5 });
+        const chorus = new Tone.Chorus({ wet: 0.5, frequency: 1.5, depth: 0.7 });
+        const distortion = new Tone.Distortion({ distortion: 0.5, wet: 0.5 });
+        const delay = new Tone.FeedbackDelay({ delayTime: 0, feedback: 0, wet: 1 });
+
+        const effectsConfig = [
+            {
+                name: 'pitchShift',
+                node: pitchShift,
+                enableId: 'pitchshift-enable',
+                params: [
+                    { id: 'pitchshift-amount', property: 'pitch' }
+                ]
+            },
+            {
+                name: 'reverb',
+                node: reverb,
+                enableId: 'reverb-enable',
+                params: [
+                    { id: 'reverb-wet', property: 'wet' }
+                ]
+            },
+            {
+                name: 'chorus',
+                node: chorus,
+                enableId: 'chorus-enable',
+                params: [
+                    { id: 'chorus-wet', property: 'wet' },
+                    { id: 'chorus-frequency', property: 'frequency' },
+                    { id: 'chorus-depth', property: 'depth' }
+                ]
+            },
+            {
+                name: 'distortion',
+                node: distortion,
+                enableId: 'distortion-enable',
+                params: [
+                    { id: 'distortion-amount', property: 'distortion' },
+                    { id: 'distortion-wet', property: 'wet' }
+                ]
+            }
+        ];
+
+        function updateChain() {
+            mic.disconnect();
+            let effects = effectsConfig.filter(effect => document.getElementById(effect.enableId).checked).map(effect => effect.node);
+            Tone.connectSeries(mic, ...effects, delay, Tone.Master);
+        }
+
+        document.getElementById('start').addEventListener('click', async () => {
+            await Tone.start();
+            await mic.open();
+            updateChain();
+        });
+
+        document.getElementById('stop').addEventListener('click', () => {
+            mic.close();
+        });
+
+        effectsConfig.forEach(effect => {
+            document.getElementById(effect.enableId).addEventListener('change', updateChain);
+            effect.params.forEach(param => {
+                document.getElementById(param.id).addEventListener('input', (e) => {
+                    effect.node[param.property].value = e.target.value;
+                });
+            });
+        });
+
+        document.getElementById('delay-time').addEventListener('input', (e) => {
+            delay.delayTime.value = e.target.value;
+        });
+    </script>
+</body>
+</html>
