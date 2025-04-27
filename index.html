@@ -1,204 +1,416 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Audio Effects</title>
-    <script src="https://unpkg.com/tone@15.0.4/build/Tone.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Live Audio Effects</title>
+  <script src="https://unpkg.com/tone@15.0.4/build/Tone.js"></script>
+  <style>
+    /* ——————————————————  
+       Design Variables  
+    —————————————————— */
+    :root {
+      --bg: #1e1e2f;
+      --card-bg: #2a2a3e;
+      --text: #e0e0e8;
+      --accent: #ff6f61;
+      --accent-light: rgba(255,111,97,0.2);
+      --radius: 8px;
+      --spacing: 1rem;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.4;
+      padding: var(--spacing);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: var(--spacing);
+      font-size: 2rem;
+      font-weight: bold;
+    }
+    /* ——————————————————  
+       Controls Header  
+    —————————————————— */
+    .controls {
+      display: flex;
+      gap: var(--spacing);
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: var(--spacing);
+    }
+    .controls button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.75em 1.5em;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .controls button:hover {
+      background: #e65b53;
+    }
+    /* ——————————————————  
+       Effects Grid  
+    —————————————————— */
+    .effects-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: var(--spacing);
+    }
+    .effect-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+    .effect-card summary {
+      list-style: none;
+      padding: var(--spacing);
+      font-weight: bold;
+      cursor: pointer;
+      background: var(--accent-light);
+      color: var(--accent);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .effect-card summary::-webkit-details-marker {
+      display: none;
+    }
+    .effect-card summary:after {
+      content: '▼';
+      font-size: 0.8em;
+      transition: transform 0.2s;
+    }
+    .effect-card[open] summary:after {
+      transform: rotate(-180deg);
+    }
+    .effect-body {
+      padding: var(--spacing);
+      display: grid;
+      grid-template-columns: 1fr;
+      row-gap: var(--spacing);
+    }
+    .effect-body label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+    }
+    .effect-body input[type="range"],
+    .effect-body input[type="number"],
+    .effect-body select {
+      flex: 1;
+      margin-left: 0.5em;
+      padding: 0.25em;
+      border-radius: var(--radius);
+      border: 1px solid #444;
+      background: #38384a;
+      color: var(--text);
+    }
+    .effect-body input[type="checkbox"] {
+      transform: scale(1.2);
+      margin-right: 0.5em;
+    }
+    .effect-body .reset-btn {
+      justify-self: end;
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 0.4em 0.8em;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .effect-body .reset-btn:hover {
+      background: var(--accent);
+      color: #fff;
+    }
+    /* ——————————————————  
+       Delay Controls  
+    —————————————————— */
+    .global-delay {
+      margin-top: var(--spacing);
+      background: var(--card-bg);
+      padding: var(--spacing);
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing);
+    }
+    .global-delay label {
+      flex: 1;
+    }
+    /* ——————————————————  
+       Responsive Touch Targets  
+    —————————————————— */
+    @media (max-width: 600px) {
+      .controls button {
+        flex: 1 1 100%;
+      }
+      .effect-body {
+        row-gap: 0.75rem;
+      }
+      .effect-body label {
+        flex-direction: column;
+        align-items: flex-start;
+        font-size: 0.85rem;
+      }
+      .effect-body input,
+      .effect-body select {
+        width: 100%;
+        margin: 0.5em 0 0;
+      }
+    }
+  </style>
 </head>
 <body>
+
+  <h1>🎛 Live Audio Effects</h1>
+  <div class="controls">
     <button id="start">Start</button>
     <button id="stop">Stop</button>
-    <div id="effects">
-        <!-- AutoFilter -->
-        <div>
-            <h3>AutoFilter</h3>
-            <label><input type="checkbox" id="autofilter-enable"> Enable</label>
-            <label>Wet: <input type="range" id="autofilter-wet" min="0" max="1" step="0.01" value="0.5"></label>
-            <label>Depth: <input type="range" id="autofilter-depth" min="0" max="1" step="0.01" value="0.5"></label>
-            <label>Frequency: <input type="range" id="autofilter-frequency" min="0.1" max="10" step="0.1" value="1"></label> Hz
-            <label>Octaves: <input type="number" id="autofilter-octaves" min="0" max="10" step="0.1" value="1"></label>
-            <button class="reset" data-effect="autofilter">Reset</button>
-        </div>
-        <!-- AutoPanner -->
-        <div>
-            <h3>AutoPanner</h3>
-            <label><input type="checkbox" id="autopanner-enable"> Enable</label>
-            <label>Wet: <input type="range" id="autopanner-wet" min="0" max="1" step="0.01" value="0.5"></label>
-            <label>Depth: <input type="range" id="autopanner-depth" min="0" max="1" step="0.01" value="0.5"></label>
-            <label>Frequency: <input type="range" id="autopanner-frequency" min="0.1" max="10" step="0.1" value="1"></label> Hz
-            <button class="reset" data-effect="autopanner">Reset</button>
-        </div>
-        <!-- AutoWah -->
-        <div>
+  </div>
 
-
-            <h3>AutoWah</h3>
-            <label><input type="checkbox" id="autowah-enable"> Enable</label>
-            <label>Wet: <input type="range" id="autowah-wet" min="0" max="1" step="0.01" value="0.5"></label>
-            <label>Base Frequency: <input type="range" id="autowah-baseFrequency" min="50" max="2000" step="1" value="1000"></label> Hz
-            <label>Octaves: <input type="number" id="autowah-octaves" min="0" max="10" step="0.1" value="1"></label>
-            <label>Q: <input type="range" id="autowah-Q" min="1" max="100" step="1" value="10"></label>
-            <label>Depth: <input type="range" id="autowah-depth" min="0" max="1" step="0.01" value="0.5"></label>
-            <label>Frequency: <input type="range" id="autowah-frequency" min="0.1" max="10" step="0.1" value="1"></label> Hz
-            <button class="reset" data-effect="autowah">Reset</button>
-        </div>
-        <!-- BitCrusher -->
-        <div>
-            <h3>BitCrusher</h3>
-            <label><input type="checkbox" id="bitcrusher-enable"> Enable</label>
-            <label>Wet: <input type="range" id="bitcrusher-wet" min="0" max="1" step="0.01" value="0.5"></label>
-            <label>Bits: <input type="number" id="bitcrusher-bits" min="1" max="16" step="1" value="8"></label>
-            <button class="reset" data-effect="bitcrusher">Reset</button>
-        </div>
-        <!-- Chebyshev -->
-        <div>
-            <h3>Chebyshev</h3>
-            <label><input type="checkbox" id="chebyshev-enable"> Enable</label>
-            <label>Wet: <input type="range" id="chebyshev-wet" min="0" max="1" step="0.01" value="0.5"></label>
-            <label>Order: <input type="number" id="chebyshev-order" min="1" max="100" step="1" value="1"></label>
-            <button class="reset" data-effect="chebyshev">Reset</button>
-        </div>
-        <!-- Chorus -->
-        <div>
-            <h3>Chorus</h3>
-            <label><input type="checkbox" id="chorus-enable"> Enable</label>
-            <label>Wet: <input type="range" id="chorus-wet" min="0" max="1" step="0.01" value="0.5"></label>
-            <label>Frequency: <input type="range" id="chorus-frequency" min="0.1" max="10" step="0.1" value="1.5"></label> Hz
-            <label>Delay Time: <input type="number" id="chorus-delayTime" min="0" max="100" step="1" value="20"></label> ms
-            <label>Depth: <input type="range" id="chorus-depth" min="0" max="1" step="0.01" value="0.7"></label>
-            <label>Type: <select id="chorus-type">
-                <option value="sine">Sine</option>
-                <option value="triangle">Triangle</option>
-                <option value="square">Square</option>
-                <option value="sawtooth">Sawtooth</option>
-            </select></label>
-            <label>Spread: <input type="number" id="chorus-spread" min="0" max="180" step="1" value="180"></label> degrees
-            <button class="reset" data-effect="chorus">Reset</button>
-        </div>
-        <!-- Distortion -->
-        <div>
-            <h3>Distortion</h3>
-            <label><input type="checkbox" id="distortion-enable"> Enable</label>
-            <label>Wet: <input type="range" id="distortion-wet" min="0" max="1" step="0.01" value="0.5"></label>
-            <label>Distortion: <input type="range" id="distortion-distortion" min="0" max="1" step="0.01" value="0.5"></label>
-            <button class="reset" data-effect="distortion">Reset</button>
-        </div>
-        <!-- FeedbackDelay -->
-        <div>
-            <h3>FeedbackDelay</h3>
-            <label><input type="checkbox" id="feedbackdelay-enable"> Enable</label>
-            <label>Wet: <input type="range" id="feedbackdelay-wet" min="0" max="1" step="0.01" value="0.5"></label>
-            <label>Delay Time: <input type="number" id="feedbackdelay-delayTime" min="0" max="1" step="0.01" value="0.25"></label> s
-            <label>Feedback: <input type="range" id="feedbackdelay-feedback" min="0" max="1" step="0.01" value="0.5"></label>
-            <button class="reset" data-effect="feedbackdelay">Reset</button>
-        </div>
-        <!-- Freeverb -->
-        <div>
-            <h3>Freeverb</h3>
-            <label><input type="checkbox" id="freeverb-enable"> Enable</label>
-            <label>Wet: <input type="range" id="freeverb-wet" min="0" max="1" step="0.01" value="0.5"></label>
-            <label>Room Size: <input type="range" id="freeverb-roomSize" min="0.1" max="0.9" step="0.01" value="0.5"></label>
-            <label>Dampening: <input type="number" id="freeverb-dampening" min="100" max="5000" step="1" value="3503"></label> Hz
-            <button class="reset" data-effect="freeverb">Reset</button>
-        </div>
-        <!-- FrequencyShifter -->
-        <div>
-            <h3>FrequencyShifter</h3>
-            <label><input type="checkbox" id="frequencyshifter-enable"> Enable</label>
-            <label>Wet: <input type="range" id="frequencyshifter-wet" min="0" max="1" step="0.01" value="0.5"></label>
-            <label>Frequency: <input type="number" id="frequencyshifter-frequency" min="-1000" max="1000" step="1" value="0"></label> Hz
-            <button class="reset" data-effect="frequencyshifter">Reset</button>
-        </div>
-        <!-- JCReverb -->
-        <div>
-            <h3>JCReverb</h3>
-            <label><input type="checkbox" id="jcreverb-enable"> Enable</label>
-            <label>Wet: <input type="range" id="jcreverb-wet" min="0" max="1" step="0.01" value="0.5"></label>
-            <label>Room Size: <input type="range" id="jcreverb-roomSize" min="0.1" max="0.9" step="0.01" value="0.5"></label>
-            <button class="reset" data-effect="jcreverb">Reset</button>
-        </div>
-        <!-- Phaser -->
-        <div>
-            <h3>Phaser</h3>
-            <label><input type="checkbox" id="phaser-enable"> Enable</label>
-            <label>Wet: <input type="range" id="phaser-wet" min="0" max="1" step="0.01" value="0.5"></label>
-            <label>Rate: <input type="range" id="phaser-rate" min="0.1" max="10" step="0.1" value="1"></label> Hz
-            <label>Depth: <input type="range" id="phaser-depth" min="0" max="1" step="0.01" value="0.5"></label>
-            <label>Base Frequency: <input type="number" id="phaser-baseFrequency" min="300" max="2000" step="1" value="350"></label> Hz
-            <label>Octaves: <input type="number" id="phaser-octaves" min="0" max="10" step="0.1" value="1"></label>
-            <label>Q: <input type="range" id="phaser-Q" min="0.1" max="10" step="0.1" value="1"></label>
-            <button class="reset" data-effect="phaser">Reset</button>
-        </div>
-        <!-- PingPongDelay -->
-        <div>
-            <h3>PingPongDelay</h3>
-            <label><input type="checkbox" id="pingpongdelay-enable"> Enable</label>
-            <label>Wet: <input type="range" id="pingpongdelay-wet" min="0" max="1" step="0.01" value="0.5"></label>
-            <label>Delay Time: <input type="number" id="pingpongdelay-delayTime" min="0" max="1" step="0.01" value="0.25"></label> s
-            <label>Feedback: <input type="range" id="pingpongdelay-feedback" min="0" max="1" step="0.01" value="0.5"></label>
-            <button class="reset" data-effect="pingpongdelay">Reset</button>
-        </div>
-        <!-- PitchShift -->
-        <div>
-            <h3>PitchShift</h3>
-            <label><input type="checkbox" id="pitchshift-enable"> Enable</label>
-            <label>Wet: <input type="range" id="pitchshift-wet" min="0" max="1" step="0.01" value="0.5"></label>
-            <label>Pitch: <input type="number" id="pitchshift-pitch" min="-12" max="12" step="0.1" value="0"></label> semitones
-            <button class="reset" data-effect="pitchshift">Reset</button>
-        </div>
-        <!-- Reverb -->
-        <div>
-            <h3>Reverb</h3>
-            <label><input type="checkbox" id="reverb-enable"> Enable</label>
-            <label>Wet: <input type="range" id="reverb-wet" min="0" max="1" step="0.01" value="0.5"></label>
-            <label>Decay: <input type="number" id="reverb-decay" min="0.1" max="10" step="0.1" value="2"></label> s
-            <label>Pre Delay: <input type="number" id="reverb-preDelay" min="0" max="1" step="0.01" value="0"></label> s
-            <button class="reset" data-effect="reverb">Reset</button>
-        </div>
-        <!-- StereoWidener -->
-        <div>
-            <h3>StereoWidener</h3>
-            <label><input type="checkbox" id="stereowidener-enable"> Enable</label>
-            <label>Wet: <input type="range" id="stereowidener-wet" min="0" max="1" step="0.01" value="0.5"></label>
-            <label>Width: <input type="range" id="stereowidener-width" min="0" max="1" step="0.01" value="0.5"></label>
-            <button class="reset" data-effect="stereowidener">Reset</button>
-        </div>
-        <!-- Tremolo -->
-        <div>
-            <h3>Tremolo</h3>
-            <label><input type="checkbox" id="tremolo-enable"> Enable</label>
-            <label>Wet: <input type="range" id="tremolo-wet" min="0" max="1" step="0.01" value="0.5"></label>
-            <label>Frequency: <input type="range" id="tremolo-frequency" min="0.1" max="10" step="0.1" value="1"></label> Hz
-            <label>Depth: <input type="range" id="tremolo-depth" min="0" max="1" step="0.01" value="0.5"></label>
-            <label>Type: <select id="tremolo-type">
-                <option value="sine">Sine</option>
-                <option value="triangle">Triangle</option>
-                <option value="square">Square</option>
-                <option value="sawtooth">Sawtooth</option>
-            </select></label>
-            <button class="reset" data-effect="tremolo">Reset</button>
-        </div>
-        <!-- Vibrato -->
-        <div>
-            <h3>Vibrato</h3>
-            <label><input type="checkbox" id="vibrato-enable"> Enable</label>
-            <label>Wet: <input type="range" id="vibrato-wet" min="0" max="1" step="0.01" value="0.5"></label>
-            <label>Frequency: <input type="range" id="vibrato-frequency" min="0.1" max="10" step="0.1" value="1"></label> Hz
-            <label>Depth: <input type="range" id="vibrato-depth" min="0" max="1" step="0.01" value="0.5"></label>
-            <label>Type: <select id="vibrato-type">
-                <option value="sine">Sine</option>
-                <option value="triangle">Triangle</option>
-                <option value="square">Square</option>
-                <option value="sawtooth">Sawtooth</option>
-            </select></label>
-            <button class="reset" data-effect="vibrato">Reset</button>
-        </div>
+<div class="effects-container">
+  <!-- AutoFilter -->
+  <details class="effect-card">
+    <summary>AutoFilter <label><input type="checkbox" id="autofilter-enable"> Enable</label></summary>
+    <div class="effect-body">
+      <label>Wet <input type="range" id="autofilter-wet" min="0" max="1" step="0.01" value="0.5"></label>
+      <label>Depth <input type="range" id="autofilter-depth" min="0" max="1" step="0.01" value="0.5"></label>
+      <label>Frequency (Hz) <input type="range" id="autofilter-frequency" min="0.1" max="10" step="0.1" value="1"></label>
+      <label>Octaves <input type="number" id="autofilter-octaves" min="0" max="10" step="0.1" value="1"></label>
+      <button class="reset-btn" data-effect="autofilter">Reset</button>
     </div>
-    <div>
-        <label>Delay Time (seconds): <input type="number" id="delay-time" min="0" max="5" step="0.1" value="0"></label>
-    </div>
+  </details>
 
+  <!-- AutoPanner -->
+  <details class="effect-card">
+    <summary>AutoPanner <label><input type="checkbox" id="autopanner-enable"> Enable</label></summary>
+    <div class="effect-body">
+      <label>Wet <input type="range" id="autopanner-wet" min="0" max="1" step="0.01" value="0.5"></label>
+      <label>Depth <input type="range" id="autopanner-depth" min="0" max="1" step="0.01" value="0.5"></label>
+      <label>Frequency (Hz) <input type="range" id="autopanner-frequency" min="0.1" max="10" step="0.1" value="1"></label>
+      <button class="reset-btn" data-effect="autopanner">Reset</button>
+    </div>
+  </details>
+
+  <!-- AutoWah -->
+  <details class="effect-card">
+    <summary>AutoWah <label><input type="checkbox" id="autowah-enable"> Enable</label></summary>
+    <div class="effect-body">
+      <label>Wet <input type="range" id="autowah-wet" min="0" max="1" step="0.01" value="0.5"></label>
+      <label>Base Frequency (Hz) <input type="range" id="autowah-baseFrequency" min="50" max="2000" step="1" value="1000"></label>
+      <label>Octaves <input type="number" id="autowah-octaves" min="0" max="10" step="0.1" value="1"></label>
+      <label>Q <input type="range" id="autowah-Q" min="1" max="100" step="1" value="10"></label>
+      <label>Depth <input type="range" id="autowah-depth" min="0" max="1" step="0.01" value="0.5"></label>
+      <label>Frequency (Hz) <input type="range" id="autowah-frequency" min="0.1" max="10" step="0.1" value="1"></label>
+      <button class="reset-btn" data-effect="autowah">Reset</button>
+    </div>
+  </details>
+
+  <!-- BitCrusher -->
+  <details class="effect-card">
+    <summary>BitCrusher <label><input type="checkbox" id="bitcrusher-enable"> Enable</label></summary>
+    <div class="effect-body">
+      <label>Wet <input type="range" id="bitcrusher-wet" min="0" max="1" step="0.01" value="0.5"></label>
+      <label>Bits <input type="number" id="bitcrusher-bits" min="1" max="16" step="1" value="8"></label>
+      <button class="reset-btn" data-effect="bitcrusher">Reset</button>
+    </div>
+  </details>
+
+  <!-- Chebyshev -->
+  <details class="effect-card">
+    <summary>Chebyshev <label><input type="checkbox" id="chebyshev-enable"> Enable</label></summary>
+    <div class="effect-body">
+      <label>Wet <input type="range" id="chebyshev-wet" min="0" max="1" step="0.01" value="0.5"></label>
+      <label>Order <input type="number" id="chebyshev-order" min="1" max="100" step="1" value="1"></label>
+      <button class="reset-btn" data-effect="chebyshev">Reset</button>
+    </div>
+  </details>
+
+  <!-- Chorus -->
+  <details class="effect-card">
+    <summary>Chorus <label><input type="checkbox" id="chorus-enable"> Enable</label></summary>
+    <div class="effect-body">
+      <label>Wet <input type="range" id="chorus-wet" min="0" max="1" step="0.01" value="0.5"></label>
+      <label>Frequency (Hz) <input type="range" id="chorus-frequency" min="0.1" max="10" step="0.1" value="1.5"></label>
+      <label>Delay Time (ms) <input type="number" id="chorus-delayTime" min="0" max="100" step="1" value="20"></label>
+      <label>Depth <input type="range" id="chorus-depth" min="0" max="1" step="0.01" value="0.7"></label>
+      <label>Type
+        <select id="chorus-type">
+          <option value="sine">Sine</option>
+          <option value="triangle">Triangle</option>
+          <option value="square">Square</option>
+          <option value="sawtooth">Sawtooth</option>
+        </select>
+      </label>
+      <label>Spread (°) <input type="number" id="chorus-spread" min="0" max="180" step="1" value="180"></label>
+      <button class="reset-btn" data-effect="chorus">Reset</button>
+    </div>
+  </details>
+
+  <!-- Distortion -->
+  <details class="effect-card">
+    <summary>Distortion <label><input type="checkbox" id="distortion-enable"> Enable</label></summary>
+    <div class="effect-body">
+      <label>Wet <input type="range" id="distortion-wet" min="0" max="1" step="0.01" value="0.5"></label>
+      <label>Distortion <input type="range" id="distortion-distortion" min="0" max="1" step="0.01" value="0.5"></label>
+      <button class="reset-btn" data-effect="distortion">Reset</button>
+    </div>
+  </details>
+
+  <!-- FeedbackDelay -->
+  <details class="effect-card">
+    <summary>FeedbackDelay <label><input type="checkbox" id="feedbackdelay-enable"> Enable</label></summary>
+    <div class="effect-body">
+      <label>Wet <input type="range" id="feedbackdelay-wet" min="0" max="1" step="0.01" value="0.5"></label>
+      <label>Delay Time (s) <input type="number" id="feedbackdelay-delayTime" min="0" max="1" step="0.01" value="0.25"></label>
+      <label>Feedback <input type="range" id="feedbackdelay-feedback" min="0" max="1" step="0.01" value="0.5"></label>
+      <button class="reset-btn" data-effect="feedbackdelay">Reset</button>
+    </div>
+  </details>
+
+  <!-- Freeverb -->
+  <details class="effect-card">
+    <summary>Freeverb <label><input type="checkbox" id="freeverb-enable"> Enable</label></summary>
+    <div class="effect-body">
+      <label>Wet <input type="range" id="freeverb-wet" min="0" max="1" step="0.01" value="0.5"></label>
+      <label>Room Size <input type="range" id="freeverb-roomSize" min="0.1" max="0.9" step="0.01" value="0.5"></label>
+      <label>Dampening (Hz) <input type="number" id="freeverb-dampening" min="100" max="5000" step="1" value="3503"></label>
+      <button class="reset-btn" data-effect="freeverb">Reset</button>
+    </div>
+  </details>
+
+  <!-- FrequencyShifter -->
+  <details class="effect-card">
+    <summary>FrequencyShifter <label><input type="checkbox" id="frequencyshifter-enable"> Enable</label></summary>
+    <div class="effect-body">
+      <label>Wet <input type="range" id="frequencyshifter-wet" min="0" max="1" step="0.01" value="0.5"></label>
+      <label>Frequency (Hz) <input type="number" id="frequencyshifter-frequency" min="-1000" max="1000" step="1" value="0"></label>
+      <button class="reset-btn" data-effect="frequencyshifter">Reset</button>
+    </div>
+  </details>
+
+  <!-- JCReverb -->
+  <details class="effect-card">
+    <summary>JCReverb <label><input type="checkbox" id="jcreverb-enable"> Enable</label></summary>
+    <div class="effect-body">
+      <label>Wet <input type="range" id="jcreverb-wet" min="0" max="1" step="0.01" value="0.5"></label>
+      <label>Room Size <input type="range" id="jcreverb-roomSize" min="0.1" max="0.9" step="0.01" value="0.5"></label>
+      <button class="reset-btn" data-effect="jcreverb">Reset</button>
+    </div>
+  </details>
+
+  <!-- Phaser -->
+  <details class="effect-card">
+    <summary>Phaser <label><input type="checkbox" id="phaser-enable"> Enable</label></summary>
+    <div class="effect-body">
+      <label>Wet <input type="range" id="phaser-wet" min="0" max="1" step="0.01" value="0.5"></label>
+      <label>Rate (Hz) <input type="range" id="phaser-rate" min="0.1" max="10" step="0.1" value="1"></label>
+      <label>Depth <input type="range" id="phaser-depth" min="0" max="1" step="0.01" value="0.5"></label>
+      <label>Base Frequency (Hz) <input type="number" id="phaser-baseFrequency" min="300" max="2000" step="1" value="350"></label>
+      <label>Octaves <input type="number" id="phaser-octaves" min="0" max="10" step="0.1" value="1"></label>
+      <label>Q <input type="range" id="phaser-Q" min="0.1" max="10" step="0.1" value="1"></label>
+      <button class="reset-btn" data-effect="phaser">Reset</button>
+    </div>
+  </details>
+
+  <!-- PingPongDelay -->
+  <details class="effect-card">
+    <summary>PingPongDelay <label><input type="checkbox" id="pingpongdelay-enable"> Enable</label></summary>
+    <div class="effect-body">
+      <label>Wet <input type="range" id="pingpongdelay-wet" min="0" max="1" step="0.01" value="0.5"></label>
+      <label>Delay Time (s) <input type="number" id="pingpongdelay-delayTime" min="0" max="1" step="0.01" value="0.25"></label>
+      <label>Feedback <input type="range" id="pingpongdelay-feedback" min="0" max="1" step="0.01" value="0.5"></label>
+      <button class="reset-btn" data-effect="pingpongdelay">Reset</button>
+    </div>
+  </details>
+
+  <!-- PitchShift -->
+  <details class="effect-card">
+    <summary>PitchShift <label><input type="checkbox" id="pitchshift-enable"> Enable</label></summary>
+    <div class="effect-body">
+      <label>Wet <input type="range" id="pitchshift-wet" min="0" max="1" step="0.01" value="0.5"></label>
+      <label>Pitch (semitones) <input type="number" id="pitchshift-pitch" min="-12" max="12" step="0.1" value="0"></label>
+      <button class="reset-btn" data-effect="pitchshift">Reset</button>
+    </div>
+  </details>
+
+  <!-- Reverb -->
+  <details class="effect-card">
+    <summary>Reverb <label><input type="checkbox" id="reverb-enable"> Enable</label></summary>
+    <div class="effect-body">
+      <label>Wet <input type="range" id="reverb-wet" min="0" max="1" step="0.01" value="0.5"></label>
+      <label>Decay (s) <input type="number" id="reverb-decay" min="0.1" max="10" step="0.1" value="2"></label>
+      <label>Pre-Delay (s) <input type="number" id="reverb-preDelay" min="0" max="1" step="0.01" value="0"></label>
+      <button class="reset-btn" data-effect="reverb">Reset</button>
+    </div>
+  </details>
+
+  <!-- StereoWidener -->
+  <details class="effect-card">
+    <summary>StereoWidener <label><input type="checkbox" id="stereowidener-enable"> Enable</label></summary>
+    <div class="effect-body">
+      <label>Wet <input type="range" id="stereowidener-wet" min="0" max="1" step="0.01" value="0.5"></label>
+      <label>Width <input type="range" id="stereowidener-width" min="0" max="1" step="0.01" value="0.5"></label>
+      <button class="reset-btn" data-effect="stereowidener">Reset</button>
+    </div>
+  </details>
+
+  <!-- Tremolo -->
+  <details class="effect-card">
+    <summary>Tremolo <label><input type="checkbox" id="tremolo-enable"> Enable</label></summary>
+    <div class="effect-body">
+      <label>Wet <input type="range" id="tremolo-wet" min="0" max="1" step="0.01" value="0.5"></label>
+      <label>Frequency (Hz) <input type="range" id="tremolo-frequency" min="0.1" max="10" step="0.1" value="1"></label>
+      <label>Depth <input type="range" id="tremolo-depth" min="0" max="1" step="0.01" value="0.5"></label>
+      <label>Type
+        <select id="tremolo-type">
+          <option value="sine">Sine</option>
+          <option value="triangle">Triangle</option>
+          <option value="square">Square</option>
+          <option value="sawtooth">Sawtooth</option>
+        </select>
+      </label>
+      <button class="reset-btn" data-effect="tremolo">Reset</button>
+    </div>
+  </details>
+
+  <!-- Vibrato -->
+  <details class="effect-card">
+    <summary>Vibrato <label><input type="checkbox" id="vibrato-enable"> Enable</label></summary>
+    <div class="effect-body">
+      <label>Wet <input type="range" id="vibrato-wet" min="0" max="1" step="0.01" value="0.5"></label>
+      <label>Frequency (Hz) <input type="range" id="vibrato-frequency" min="0.1" max="10" step="0.1" value="1"></label>
+      <label>Depth <input type="range" id="vibrato-depth" min="0" max="1" step="0.01" value="0.5"></label>
+      <label>Type
+        <select id="vibrato-type">
+          <option value="sine">Sine</option>
+          <option value="triangle">Triangle</option>
+          <option value="square">Square</option>
+          <option value="sawtooth">Sawtooth</option>
+        </select>
+      </label>
+      <button class="reset-btn" data-effect="vibrato">Reset</button>
+    </div>
+  </details>
+</div>
+
+  <div class="global-delay">
+    <label>Delay Time (s): <input type="number" id="delay-time" min="0" max="5" step="0.1" value="0"></label>
+  </div>
+
+  <!-- —————————  
+    Your existing script can remain largely unchanged; it will pick up the new IDs.  
+  ————————— -->
     <script>
         const mic = new Tone.UserMedia();
         const delay = new Tone.FeedbackDelay({ delayTime: 0, feedback: 0, wet: 1 });

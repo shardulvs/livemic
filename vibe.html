@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Audio Effects</title>
+    <script src="https://unpkg.com/tone@15.0.4/build/Tone.js"></script>
+</head>
+<body>
+    <button id="start">Start</button>
+    <button id="stop">Stop</button>
+    <div id="effects">
+        <!-- AutoFilter -->
+        <div>
+            <h3>AutoFilter</h3>
+            <label><input type="checkbox" id="autofilter-enable"> Enable</label>
+            <label>Wet: <input type="range" id="autofilter-wet" min="0" max="1" step="0.01" value="0.5"></label>
+            <label>Depth: <input type="range" id="autofilter-depth" min="0" max="1" step="0.01" value="0.5"></label>
+            <label>Frequency: <input type="range" id="autofilter-frequency" min="0.1" max="10" step="0.1" value="1"></label> Hz
+            <label>Octaves: <input type="number" id="autofilter-octaves" min="0" max="10" step="0.1" value="1"></label>
+            <button class="reset" data-effect="autofilter">Reset</button>
+        </div>
+        <!-- AutoPanner -->
+        <div>
+            <h3>AutoPanner</h3>
+            <label><input type="checkbox" id="autopanner-enable"> Enable</label>
+            <label>Wet: <input type="range" id="autopanner-wet" min="0" max="1" step="0.01" value="0.5"></label>
+            <label>Depth: <input type="range" id="autopanner-depth" min="0" max="1" step="0.01" value="0.5"></label>
+            <label>Frequency: <input type="range" id="autopanner-frequency" min="0.1" max="10" step="0.1" value="1"></label> Hz
+            <button class="reset" data-effect="autopanner">Reset</button>
+        </div>
+        <!-- AutoWah -->
+        <div>
+
+
+            <h3>AutoWah</h3>
+            <label><input type="checkbox" id="autowah-enable"> Enable</label>
+            <label>Wet: <input type="range" id="autowah-wet" min="0" max="1" step="0.01" value="0.5"></label>
+            <label>Base Frequency: <input type="range" id="autowah-baseFrequency" min="50" max="2000" step="1" value="1000"></label> Hz
+            <label>Octaves: <input type="number" id="autowah-octaves" min="0" max="10" step="0.1" value="1"></label>
+            <label>Q: <input type="range" id="autowah-Q" min="1" max="100" step="1" value="10"></label>
+            <label>Depth: <input type="range" id="autowah-depth" min="0" max="1" step="0.01" value="0.5"></label>
+            <label>Frequency: <input type="range" id="autowah-frequency" min="0.1" max="10" step="0.1" value="1"></label> Hz
+            <button class="reset" data-effect="autowah">Reset</button>
+        </div>
+        <!-- BitCrusher -->
+        <div>
+            <h3>BitCrusher</h3>
+            <label><input type="checkbox" id="bitcrusher-enable"> Enable</label>
+            <label>Wet: <input type="range" id="bitcrusher-wet" min="0" max="1" step="0.01" value="0.5"></label>
+            <label>Bits: <input type="number" id="bitcrusher-bits" min="1" max="16" step="1" value="8"></label>
+            <button class="reset" data-effect="bitcrusher">Reset</button>
+        </div>
+        <!-- Chebyshev -->
+        <div>
+            <h3>Chebyshev</h3>
+            <label><input type="checkbox" id="chebyshev-enable"> Enable</label>
+            <label>Wet: <input type="range" id="chebyshev-wet" min="0" max="1" step="0.01" value="0.5"></label>
+            <label>Order: <input type="number" id="chebyshev-order" min="1" max="100" step="1" value="1"></label>
+            <button class="reset" data-effect="chebyshev">Reset</button>
+        </div>
+        <!-- Chorus -->
+        <div>
+            <h3>Chorus</h3>
+            <label><input type="checkbox" id="chorus-enable"> Enable</label>
+            <label>Wet: <input type="range" id="chorus-wet" min="0" max="1" step="0.01" value="0.5"></label>
+            <label>Frequency: <input type="range" id="chorus-frequency" min="0.1" max="10" step="0.1" value="1.5"></label> Hz
+            <label>Delay Time: <input type="number" id="chorus-delayTime" min="0" max="100" step="1" value="20"></label> ms
+            <label>Depth: <input type="range" id="chorus-depth" min="0" max="1" step="0.01" value="0.7"></label>
+            <label>Type: <select id="chorus-type">
+                <option value="sine">Sine</option>
+                <option value="triangle">Triangle</option>
+                <option value="square">Square</option>
+                <option value="sawtooth">Sawtooth</option>
+            </select></label>
+            <label>Spread: <input type="number" id="chorus-spread" min="0" max="180" step="1" value="180"></label> degrees
+            <button class="reset" data-effect="chorus">Reset</button>
+        </div>
+        <!-- Distortion -->
+        <div>
+            <h3>Distortion</h3>
+            <label><input type="checkbox" id="distortion-enable"> Enable</label>
+            <label>Wet: <input type="range" id="distortion-wet" min="0" max="1" step="0.01" value="0.5"></label>
+            <label>Distortion: <input type="range" id="distortion-distortion" min="0" max="1" step="0.01" value="0.5"></label>
+            <button class="reset" data-effect="distortion">Reset</button>
+        </div>
+        <!-- FeedbackDelay -->
+        <div>
+            <h3>FeedbackDelay</h3>
+            <label><input type="checkbox" id="feedbackdelay-enable"> Enable</label>
+            <label>Wet: <input type="range" id="feedbackdelay-wet" min="0" max="1" step="0.01" value="0.5"></label>
+            <label>Delay Time: <input type="number" id="feedbackdelay-delayTime" min="0" max="1" step="0.01" value="0.25"></label> s
+            <label>Feedback: <input type="range" id="feedbackdelay-feedback" min="0" max="1" step="0.01" value="0.5"></label>
+            <button class="reset" data-effect="feedbackdelay">Reset</button>
+        </div>
+        <!-- Freeverb -->
+        <div>
+            <h3>Freeverb</h3>
+            <label><input type="checkbox" id="freeverb-enable"> Enable</label>
+            <label>Wet: <input type="range" id="freeverb-wet" min="0" max="1" step="0.01" value="0.5"></label>
+            <label>Room Size: <input type="range" id="freeverb-roomSize" min="0.1" max="0.9" step="0.01" value="0.5"></label>
+            <label>Dampening: <input type="number" id="freeverb-dampening" min="100" max="5000" step="1" value="3503"></label> Hz
+            <button class="reset" data-effect="freeverb">Reset</button>
+        </div>
+        <!-- FrequencyShifter -->
+        <div>
+            <h3>FrequencyShifter</h3>
+            <label><input type="checkbox" id="frequencyshifter-enable"> Enable</label>
+            <label>Wet: <input type="range" id="frequencyshifter-wet" min="0" max="1" step="0.01" value="0.5"></label>
+            <label>Frequency: <input type="number" id="frequencyshifter-frequency" min="-1000" max="1000" step="1" value="0"></label> Hz
+            <button class="reset" data-effect="frequencyshifter">Reset</button>
+        </div>
+        <!-- JCReverb -->
+        <div>
+            <h3>JCReverb</h3>
+            <label><input type="checkbox" id="jcreverb-enable"> Enable</label>
+            <label>Wet: <input type="range" id="jcreverb-wet" min="0" max="1" step="0.01" value="0.5"></label>
+            <label>Room Size: <input type="range" id="jcreverb-roomSize" min="0.1" max="0.9" step="0.01" value="0.5"></label>
+            <button class="reset" data-effect="jcreverb">Reset</button>
+        </div>
+        <!-- Phaser -->
+        <div>
+            <h3>Phaser</h3>
+            <label><input type="checkbox" id="phaser-enable"> Enable</label>
+            <label>Wet: <input type="range" id="phaser-wet" min="0" max="1" step="0.01" value="0.5"></label>
+            <label>Rate: <input type="range" id="phaser-rate" min="0.1" max="10" step="0.1" value="1"></label> Hz
+            <label>Depth: <input type="range" id="phaser-depth" min="0" max="1" step="0.01" value="0.5"></label>
+            <label>Base Frequency: <input type="number" id="phaser-baseFrequency" min="300" max="2000" step="1" value="350"></label> Hz
+            <label>Octaves: <input type="number" id="phaser-octaves" min="0" max="10" step="0.1" value="1"></label>
+            <label>Q: <input type="range" id="phaser-Q" min="0.1" max="10" step="0.1" value="1"></label>
+            <button class="reset" data-effect="phaser">Reset</button>
+        </div>
+        <!-- PingPongDelay -->
+        <div>
+            <h3>PingPongDelay</h3>
+            <label><input type="checkbox" id="pingpongdelay-enable"> Enable</label>
+            <label>Wet: <input type="range" id="pingpongdelay-wet" min="0" max="1" step="0.01" value="0.5"></label>
+            <label>Delay Time: <input type="number" id="pingpongdelay-delayTime" min="0" max="1" step="0.01" value="0.25"></label> s
+            <label>Feedback: <input type="range" id="pingpongdelay-feedback" min="0" max="1" step="0.01" value="0.5"></label>
+            <button class="reset" data-effect="pingpongdelay">Reset</button>
+        </div>
+        <!-- PitchShift -->
+        <div>
+            <h3>PitchShift</h3>
+            <label><input type="checkbox" id="pitchshift-enable"> Enable</label>
+            <label>Wet: <input type="range" id="pitchshift-wet" min="0" max="1" step="0.01" value="0.5"></label>
+            <label>Pitch: <input type="number" id="pitchshift-pitch" min="-12" max="12" step="0.1" value="0"></label> semitones
+            <button class="reset" data-effect="pitchshift">Reset</button>
+        </div>
+        <!-- Reverb -->
+        <div>
+            <h3>Reverb</h3>
+            <label><input type="checkbox" id="reverb-enable"> Enable</label>
+            <label>Wet: <input type="range" id="reverb-wet" min="0" max="1" step="0.01" value="0.5"></label>
+            <label>Decay: <input type="number" id="reverb-decay" min="0.1" max="10" step="0.1" value="2"></label> s
+            <label>Pre Delay: <input type="number" id="reverb-preDelay" min="0" max="1" step="0.01" value="0"></label> s
+            <button class="reset" data-effect="reverb">Reset</button>
+        </div>
+        <!-- StereoWidener -->
+        <div>
+            <h3>StereoWidener</h3>
+            <label><input type="checkbox" id="stereowidener-enable"> Enable</label>
+            <label>Wet: <input type="range" id="stereowidener-wet" min="0" max="1" step="0.01" value="0.5"></label>
+            <label>Width: <input type="range" id="stereowidener-width" min="0" max="1" step="0.01" value="0.5"></label>
+            <button class="reset" data-effect="stereowidener">Reset</button>
+        </div>
+        <!-- Tremolo -->
+        <div>
+            <h3>Tremolo</h3>
+            <label><input type="checkbox" id="tremolo-enable"> Enable</label>
+            <label>Wet: <input type="range" id="tremolo-wet" min="0" max="1" step="0.01" value="0.5"></label>
+            <label>Frequency: <input type="range" id="tremolo-frequency" min="0.1" max="10" step="0.1" value="1"></label> Hz
+            <label>Depth: <input type="range" id="tremolo-depth" min="0" max="1" step="0.01" value="0.5"></label>
+            <label>Type: <select id="tremolo-type">
+                <option value="sine">Sine</option>
+                <option value="triangle">Triangle</option>
+                <option value="square">Square</option>
+                <option value="sawtooth">Sawtooth</option>
+            </select></label>
+            <button class="reset" data-effect="tremolo">Reset</button>
+        </div>
+        <!-- Vibrato -->
+        <div>
+            <h3>Vibrato</h3>
+            <label><input type="checkbox" id="vibrato-enable"> Enable</label>
+            <label>Wet: <input type="range" id="vibrato-wet" min="0" max="1" step="0.01" value="0.5"></label>
+            <label>Frequency: <input type="range" id="vibrato-frequency" min="0.1" max="10" step="0.1" value="1"></label> Hz
+            <label>Depth: <input type="range" id="vibrato-depth" min="0" max="1" step="0.01" value="0.5"></label>
+            <label>Type: <select id="vibrato-type">
+                <option value="sine">Sine</option>
+                <option value="triangle">Triangle</option>
+                <option value="square">Square</option>
+                <option value="sawtooth">Sawtooth</option>
+            </select></label>
+            <button class="reset" data-effect="vibrato">Reset</button>
+        </div>
+    </div>
+    <div>
+        <label>Delay Time (seconds): <input type="number" id="delay-time" min="0" max="5" step="0.1" value="0"></label>
+    </div>
+
+    <script>
+        const mic = new Tone.UserMedia();
+        const delay = new Tone.FeedbackDelay({ delayTime: 0, feedback: 0, wet: 1 });
+
+        // Initialize all effects
+        const autofilter = new Tone.AutoFilter({ frequency: 1, depth: 0.5, wet: 0.5 }).start();
+        const autopanner = new Tone.AutoPanner({ frequency: 1, depth: 0.5, wet: 0.5 }).start();
+        const autowah = new Tone.AutoWah({ baseFrequency: 1000, octaves: 1, Q: 10, depth: 0.5, frequency: 1, wet: 0.5 });
+        const bitcrusher = new Tone.BitCrusher({ bits: 8, wet: 0.5 });
+        const chebyshev = new Tone.Chebyshev({ order: 1, wet: 0.5 });
+        const chorus = new Tone.Chorus({ frequency: 1.5, delayTime: 20, depth: 0.7, type: "sine", spread: 180, wet: 0.5 }).start();
+        const distortion = new Tone.Distortion({ distortion: 0.5, wet: 0.5 });
+        const feedbackdelay = new Tone.FeedbackDelay({ delayTime: 0.25, feedback: 0.5, wet: 0.5 });
+        const freeverb = new Tone.Freeverb({ roomSize: 0.5, dampening: 3503, wet: 0.5 });
+        const frequencyshifter = new Tone.FrequencyShifter({ frequency: 0, wet: 0.5 });
+        const jcreverb = new Tone.JCReverb({ roomSize: 0.5, wet: 0.5 });
+        const phaser = new Tone.Phaser({ rate: 1, depth: 0.5, baseFrequency: 350, octaves: 1, Q: 1, wet: 0.5 });
+        const pingpongdelay = new Tone.PingPongDelay({ delayTime: 0.25, feedback: 0.5, wet: 0.5 });
+        const pitchshift = new Tone.PitchShift({ pitch: 0, wet: 0.5 });
+        const reverb = new Tone.Reverb({ decay: 2, preDelay: 0, wet: 0.5 });
+        const stereowidener = new Tone.StereoWidener({ width: 0.5, wet: 0.5 });
+        const tremolo = new Tone.Tremolo({ frequency: 1, depth: 0.5, type: "sine", wet: 0.5 }).start();
+        const vibrato = new Tone.Vibrato({ frequency: 1, depth: 0.5, type: "sine", wet: 0.5 });
+
+        // Effects configuration
+        const effectsConfig = [
+            { name: 'AutoFilter', node: autofilter, enableId: 'autofilter-enable', params: [
+                { id: 'autofilter-wet', property: 'wet' },
+                { id: 'autofilter-depth', property: 'depth' },
+                { id: 'autofilter-frequency', property: 'frequency' },
+                { id: 'autofilter-octaves', property: 'octaves' }
+            ]},
+            { name: 'AutoPanner', node: autopanner, enableId: 'autopanner-enable', params: [
+                { id: 'autopanner-wet', property: 'wet' },
+                { id: 'autopanner-depth', property: 'depth' },
+                { id: 'autopanner-frequency', property: 'frequency' }
+            ]},
+            { name: 'AutoWah', node: autowah, enableId: 'autowah-enable', params: [
+                { id: 'autowah-wet', property: 'wet' },
+                { id: 'autowah-baseFrequency', property: 'baseFrequency' },
+                { id: 'autowah-octaves', property: 'octaves' },
+                { id: 'autowah-Q', property: 'Q' },
+                { id: 'autowah-depth', property: 'depth' },
+                { id: 'autowah-frequency', property: 'frequency' }
+            ]},
+            { name: 'BitCrusher', node: bitcrusher, enableId: 'bitcrusher-enable', params: [
+                { id: 'bitcrusher-wet', property: 'wet' },
+                { id: 'bitcrusher-bits', property: 'bits' }
+            ]},
+            { name: 'Chebyshev', node: chebyshev, enableId: 'chebyshev-enable', params: [
+                { id: 'chebyshev-wet', property: 'wet' },
+                { id: 'chebyshev-order', property: 'order' }
+            ]},
+            { name: 'Chorus', node: chorus, enableId: 'chorus-enable', params: [
+                { id: 'chorus-wet', property: 'wet' },
+                { id: 'chorus-frequency', property: 'frequency' },
+                { id: 'chorus-delayTime', property: 'delayTime' },
+                { id: 'chorus-depth', property: 'depth' },
+                { id: 'chorus-type', property: 'type' },
+                { id: 'chorus-spread', property: 'spread' }
+            ]},
+            { name: 'Distortion', node: distortion, enableId: 'distortion-enable', params: [
+                { id: 'distortion-wet', property: 'wet' },
+                { id: 'distortion-distortion', property: 'distortion' }
+            ]},
+            { name: 'FeedbackDelay', node: feedbackdelay, enableId: 'feedbackdelay-enable', params: [
+                { id: 'feedbackdelay-wet', property: 'wet' },
+                { id: 'feedbackdelay-delayTime', property: 'delayTime' },
+                { id: 'feedbackdelay-feedback', property: 'feedback' }
+            ]},
+            { name: 'Freeverb', node: freeverb, enableId: 'freeverb-enable', params: [
+                { id: 'freeverb-wet', property: 'wet' },
+                { id: 'freeverb-roomSize', property: 'roomSize' },
+                { id: 'freeverb-dampening', property: 'dampening' }
+            ]},
+            { name: 'FrequencyShifter', node: frequencyshifter, enableId: 'frequencyshifter-enable', params: [
+                { id: 'frequencyshifter-wet', property: 'wet' },
+                { id: 'frequencyshifter-frequency', property: 'frequency' }
+            ]},
+            { name: 'JCReverb', node: jcreverb, enableId: 'jcreverb-enable', params: [
+                { id: 'jcreverb-wet', property: 'wet' },
+                { id: 'jcreverb-roomSize', property: 'roomSize' }
+            ]},
+            { name: 'Phaser', node: phaser, enableId: 'phaser-enable', params: [
+                { id: 'phaser-wet', property: 'wet' },
+                { id: 'phaser-rate', property: 'rate' },
+                { id: 'phaser-depth', property: 'depth' },
+                { id: 'phaser-baseFrequency', property: 'baseFrequency' },
+                { id: 'phaser-octaves', property: 'octaves' },
+                { id: 'phaser-Q', property: 'Q' }
+            ]},
+            { name: 'PingPongDelay', node: pingpongdelay, enableId: 'pingpongdelay-enable', params: [
+                { id: 'pingpongdelay-wet', property: 'wet' },
+                { id: 'pingpongdelay-delayTime', property: 'delayTime' },
+                { id: 'pingpongdelay-feedback', property: 'feedback' }
+            ]},
+            { name: 'PitchShift', node: pitchshift, enableId: 'pitchshift-enable', params: [
+                { id: 'pitchshift-wet', property: 'wet' },
+                { id: 'pitchshift-pitch', property: 'pitch' }
+            ]},
+            { name: 'Reverb', node: reverb, enableId: 'reverb-enable', params: [
+                { id: 'reverb-wet', property: 'wet' },
+                { id: 'reverb-decay', property: 'decay' },
+                { id: 'reverb-preDelay', property: 'preDelay' }
+            ]},
+            { name: 'StereoWidener', node: stereowidener, enableId: 'stereowidener-enable', params: [
+                { id: 'stereowidener-wet', property: 'wet' },
+                { id: 'stereowidener-width', property: 'width' }
+            ]},
+            { name: 'Tremolo', node: tremolo, enableId: 'tremolo-enable', params: [
+                { id: 'tremolo-wet', property: 'wet' },
+                { id: 'tremolo-frequency', property: 'frequency' },
+                { id: 'tremolo-depth', property: 'depth' },
+                { id: 'tremolo-type', property: 'type' }
+            ]},
+            { name: 'Vibrato', node: vibrato, enableId: 'vibrato-enable', params: [
+                { id: 'vibrato-wet', property: 'wet' },
+                { id: 'vibrato-frequency', property: 'frequency' },
+                { id: 'vibrato-depth', property: 'depth' },
+                { id: 'vibrato-type', property: 'type' }
+            ]}
+        ];
+
+        // Default parameters for reset
+        const defaultParams = {
+            autofilter: { wet: 0.5, depth: 0.5, frequency: 1, octaves: 1 },
+            autopanner: { wet: 0.5, depth: 0.5, frequency: 1 },
+            autowah: { wet: 0.5, baseFrequency: 1000, octaves: 1, Q: 10, depth: 0.5, frequency: 1 },
+            bitcrusher: { wet: 0.5, bits: 8 },
+            chebyshev: { wet: 0.5, order: 1 },
+            chorus: { wet: 0.5, frequency: 1.5, delayTime: 20, depth: 0.7, type: 'sine', spread: 180 },
+            distortion: { wet: 0.5, distortion: 0.5 },
+            feedbackdelay: { wet: 0.5, delayTime: 0.25, feedback: 0.5 },
+            freeverb: { wet: 0.5, roomSize: 0.5, dampening: 3503 },
+            frequencyshifter: { wet: 0.5, frequency: 0 },
+            jcreverb: { wet: 0.5, roomSize: 0.5 },
+            phaser: { wet: 0.5, rate: 1, depth: 0.5, baseFrequency: 350, octaves: 1, Q: 1 },
+            pingpongdelay: { wet: 0.5, delayTime: 0.25, feedback: 0.5 },
+            pitchshift: { wet: 0.5, pitch: 0 },
+            reverb: { wet: 0.5, decay: 2, preDelay: 0 },
+            stereowidener: { wet: 0.5, width: 0.5 },
+            tremolo: { wet: 0.5, frequency: 1, depth: 0.5, type: 'sine' },
+            vibrato: { wet: 0.5, frequency: 1, depth: 0.5, type: 'sine' }
+        };
+
+        // Update audio chain
+        function updateChain() {
+            mic.disconnect();
+            const activeEffects = effectsConfig.filter(effect => document.getElementById(effect.enableId).checked).map(effect => effect.node);
+            Tone.connectSeries(mic, ...activeEffects, delay, Tone.getDestination());
+        }
+
+        // Reset effect parameters
+        function resetEffect(effectName) {
+            const effectConfig = effectsConfig.find(effect => effect.name.toLowerCase() === effectName);
+            if (!effectConfig) return;
+
+            const defaults = defaultParams[effectName];
+            effectConfig.params.forEach(param => {
+                const input = document.getElementById(param.id);
+                effectConfig.node[param.property].value = defaults[param.property];
+                input.value = defaults[param.property];
+            });
+        }
+
+        // Event listeners
+        document.getElementById('start').addEventListener('click', async () => {
+            await Tone.start();
+            await mic.open();
+            updateChain();
+        });
+
+        document.getElementById('stop').addEventListener('click', () => {
+            mic.close();
+        });
+
+        effectsConfig.forEach(effect => {
+            document.getElementById(effect.enableId).addEventListener('change', updateChain);
+            effect.params.forEach(param => {
+                document.getElementById(param.id).addEventListener('input', (e) => {
+                    effect.node[param.property].value = e.target.value;
+                });
+            });
+        });
+
+        document.getElementById('delay-time').addEventListener('input', (e) => {
+            delay.delayTime.value = parseFloat(e.target.value);
+        });
+
+        document.querySelectorAll('.reset').forEach(button => {
+            button.addEventListener('click', () => {
+                const effectName = button.dataset.effect;
+                resetEffect(effectName);
+            });
+        });
+    </script>
+</body>
+</html>
